@@ -1,0 +1,220 @@
+{% extends 'admin/base.html' %}
+{% load staticfiles %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fabric Image Recognition</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="/static/css/bootstrap.min.css">
+    <link href="/static/lib/viewer-master/dist/viewer.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div style="height: 700px">
+<div style="height: 100%" id="image-gallery">
+    <div style="width: 30%;float: left;" >
+        <form enctype="multipart/form-data" method="post" onsubmit="return false;">
+            <div class="form-group form-inline" style="vertical-align: center">
+                <label for="up_img" class=" btn btn-success">Choose Fabric Image</label>
+                <input class="form-control" type="file" id="up_img" name="img" placeholder="选择织物图片" style="display: none" onchange="uploadImg()" />
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="btn btn-primary"  id="uploadBtn" onclick="doUpload()">Upload and Recognition</button>
+
+                &nbsp;&nbsp;&nbsp;&nbsp;
+
+            </div>
+        </form>
+
+
+        <label style="font-size: large">Original Image</label>
+        <div style="border:1px solid #96c2f1;">
+            <img id="upImg" src='{% static 'image/20190219-120844-771.png' %}' style="width: 100%;height: 100%" alt="Original Image" title="Original Image"  >
+        </div>
+        <br>
+        <br>
+        <div id="yarnColors" style="display: none">
+            <label style="font-size: large">Yarn Color Results</label>
+            <div >
+                <div style="border:1px solid #96c2f1;vertical-align: middle">
+                    <div style="vertical-align: middle"><label style="font-size: medium;color: cornflowerblue">Warp Yarns</label></div>
+                    <div id="warpColors">
+                        {% comment %}<div style="background-color: rgba(123,123,3,1);width: 40px;height: 40px;display: inline-block"></div>
+                    {% endcomment %}</div>
+                </div>
+            </div>
+            <br>
+            <div  >
+                <div style="border:1px solid #96c2f1;vertical-align: middle">
+                    <div style="vertical-align: middle"><label style="font-size: medium;color: olive">Weft Yarns</label></div>
+                    <div id="weftColors">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="width:69%;height:100%;float: right;display: none" id="results">
+        <label style="font-size: xx-large">Results：</label>
+        <br>
+        <div style="width:100%;height:100%;">
+            <div class="ps-container" style="background-color: azure;padding: 10px">
+                <div  class="ps-container" style="width:100%;background-color: azure;display: inline;padding: 10px">
+                        <label style="color: grey;font-weight: bold">Warp Density:</label>
+                        <input class="vTextField" type="text" id="warp_density" name="warp_density" value="123" readonly>
+                        &nbsp;&nbsp;&nbsp;
+                        <label style="color: grey;font-weight: bold">Weft Density:</label>
+                        <input class="vTextField" type="text" id="weft_density" name="weft_density" readonly>
+                    &nbsp;&nbsp;&nbsp;
+                        <label style="color: grey;font-weight: bold">Process Time:</label>
+                        <input class="vTextField" type="text" id="process_time" name="process_time" readonly>
+                </div>
+            </div>
+            {% comment %}<label style="font-size: large">Intermediate results</label>{% endcomment %}
+            <div style="padding: 5px;width: 100%;height: 100%" > {% comment %}所有结果的结果框{% endcomment %}
+                <div >
+                    <div style="border:1px solid #ffcc00;padding: 5px;float: left;width: 50%">
+                        <label>Warp Density Map</label>
+                        <div >
+                            <img style="width: 100%"  id="warp_density_map" title="Warp Density Map" alt="Warp Density Map" >
+                        </div>
+                    </div>
+                    <div style="border:1px solid #ffcc00;padding: 5px;float: right;width: 50%">
+                        <label>Weft Density Map</label>
+                        <div >
+                            <img style="width: 100%" id="weft_density_map" title="Weft Density Map" alt="Weft Density Map" >
+                        </div>
+                    </div>
+                </div>
+                <div >
+                    <div style="border:1px solid #ffcc00;padding: 5px;float: left;width: 50%">
+                        <label>Warp Pattern Map</label>
+                        <div >
+                            <img style="width: 100%" id="warp_pattern_map"  title="Warp Density Map" alt="Warp Density Map" >
+                        </div>
+                    </div>
+                    <div style="border:1px solid #ffcc00;padding: 5px;float: right;width: 50%">
+                        <label>Weft Pattern Map</label>
+                        <div >
+                            <img style="width: 100%" id="weft_pattern_map"   title="Weft Density Map" alt="Weft Density Map" >
+                        </div>
+                    </div>
+                </div>
+                <div >
+                    <div style="border:1px solid #ffcc00;padding: 5px;width: 100%">
+                        <label>Weave Pattern</label>
+                        <div style="text-align: center;overflow: hidden">
+                            <img id="weave_pattern"  title="Warp Density Map" alt="Warp Density Map" >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% comment %}    <br>
+    <br>
+    <label style="font-size: xx-large">Results：</label>
+    <br>
+    <br>
+<div class="form-row"  style="background-color: azure;padding: 20px">
+    <span >
+        <label style="color: grey;font-weight: bold">Warp Density:</label>
+        <input class="vTextField" type="text" id="warp_density" name="warp_density" value="123" readonly>
+    </span>
+        &nbsp;&nbsp;&nbsp;
+    <span >
+        <label style="color: grey;font-weight: bold">Weft Density:</label>
+        <input class="vTextField" type="text" id="weft_density" name="weft_density" readonly>
+    </span>
+</div>{% endcomment %}
+</div>
+</body>
+<script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap.js"></script>
+<script type="text/javascript" src="/static/lib/viewer-master/dist/viewer.js"></script>
+<script>
+    function doUpload() {   // 上传图片并识别
+        var formData = new FormData();
+        console.log($("#up_img").val());
+        var personsFile = document.getElementById("up_img").files[0];
+        formData.append("img",personsFile);
+        if (personsFile==null ||personsFile==""){     // 第一个0是jQuery变document
+            alert("Please upload images (*.jpg,*.png,*.bmp)!");
+            return;
+        }else{
+            $.ajax({
+                url:'/densities/uploadImg/',
+                type:'post',
+                data: formData,
+                contentType: false,
+                processData: false,
+                async:false,
+                success:function(res){
+                    console.log(res);
+                    $("#weftColors").html("");
+                    $("#warpColors").html("");
+                    if(res!=null && res.msg=="success"){
+                        $("#results").css('display',"block");
+                        $("#process_time").val(res.process_time.toFixed(2));
+                        $("#warp_density").val(res.warp_density.toFixed(2));
+                        $("#weft_density").val(res.weft_density.toFixed(2));
+                        $("#weave_pattern").attr("src",res.weave_pattern);
+                        $("#warp_density_map").attr("src",res.warp_density_map);
+                        $("#weft_density_map").attr("src",res.weft_density_map);
+                        $("#warp_pattern_map").attr("src",res.warp_pattern_map);
+                        $("#weft_pattern_map").attr("src",res.weft_pattern_map);
+                        // resultsDiv的显示
+                        var weft_rgbs=res.weft_rgbs;
+                        var warp_rgbs=res.warp_rgbs;
+                        if (weft_rgbs.length<=0){
+                            $("#yarnColors").css("display","none");
+                        } else{
+                            $("#yarnColors").css("display","block");
+                            for (var i = 0; i < weft_rgbs.length; i++) {
+                                console.log(parseInt(weft_rgbs[i][0]*255));
+                                $("#weftColors").append("<div style=\"background-color: rgba("+parseInt(weft_rgbs[i][0]*255)+","+parseInt(weft_rgbs[i][1]*255)+","+parseInt(weft_rgbs[i][2]*255)+",1);width: 40px;height: 40px;display: inline-block\"></div>")
+                            }
+                        }
+                        if (warp_rgbs.length<=0){
+                            $("#yarnColors").css("display","none");
+                        } else{
+                            $("#yarnColors").css("display","block");
+                            for (var i = 0; i < warp_rgbs.length; i++) {
+                                console.log(parseInt(warp_rgbs[i][0]*255));
+                                $("#warpColors").append("<div style=\"background-color: rgba("+parseInt(warp_rgbs[i][0]*255)+","+parseInt(warp_rgbs[i][1]*255)+","+parseInt(warp_rgbs[i][2]*255)+",1);width: 40px;height: 40px;display: inline-block\"></div>")
+                            }
+                        }
+                    }else {
+                        console.log("error")
+                    }
+                }
+            })
+        }
+    }
+    function uploadImg() {
+        var imgName = $("#up_img").val();
+        var personsFile = document.getElementById("up_img");
+        if (!/\.(gif|jpg|jpeg|png|GIF|JPG|PNG|bmp|BMP)$/.test(imgName)) {// 判断上传的文件类型
+            alert("Please upload images (*.jpg,*.png,*.bmp)!");
+            $("#up_img").val("");
+            document.getElementById("upImg").src ='{% static 'image/20190219-120844-771.png' %}';
+            return false;
+        }else{
+            document.getElementById("upImg").src = window.URL.createObjectURL(personsFile.files[0]);// 是图片就回显
+        }
+    }
+
+
+
+    $("img").on("dblclick",function () {
+        $("#image-gallery").viewer();
+    });
+    // Get the Viewer.js instance after initialized
+    //var viewer = $image.data('viewer');
+
+    // View a list of images
+    //$('#images').viewer();
+</script>
+</html>
+{% endblock %}
