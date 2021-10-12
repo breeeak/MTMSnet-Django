@@ -6,7 +6,7 @@ Keras-Preprocessing==1.0.5
 matplotlib==2.2.2
 numpy==1.14.3
 numpydoc==0.8.0
-opencv-contrib-python==4.0.0.21
+opencv-contrib-python==4.1.1.26
 opencv-python==3.4.5.20
 pandas==0.23.0
 scikit-image==0.13.1
